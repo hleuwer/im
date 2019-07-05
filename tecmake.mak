@@ -779,7 +779,8 @@ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   endif
   ifdef USE_OPENGL
 #      LFLAGS = -framework OpenGL
-      LFLAGS = -L /opt/local/lib
+       LFLAGS = -L /opt/X11/lib
+#      LFLAGS = -L /opt/local/lib
       OPENGL_LIBS := GL GLU
     ifeq ($(TEC_SYSMINOR), 5)
       #Darwin9 Only - OpenGL bug fix for Fink, when the message bellow appears
