@@ -2,11 +2,16 @@
 APPS = $(shell cat apps.list)
 SLIBS = $(shell cat slib.list)
 DLIBS = $(shell cat dlib.list)
+INCS = $(shell cat inc.list)
 
 # Install destinations
-INSTALL_BINDIR = /usr/local/bin
-INSTALL_LIBDIR = /usr/local/lib
-INSTALL_MODDIR = /usr/local/lib/lua
+INSTALL_DIR = /usr/local
+INSTALL_BINDIR = $(INSTALL_DIR)/bin
+INSTALL_LIBDIR = $(INSTALL_DIR)/lib
+INSTALL_MODDIR = $(INSTALL_DIR)/lib/lua
+INSTALL_INCDIR = $(INSTALL_DIR)/include
+
+TEC_UNAME=$(shell ls lib)
 
 .PHONY: do_all
 
@@ -21,7 +26,12 @@ clean clean-target clean-obj:
 	  cd $$i; $(MAKE)  -f ../tecmake.mak $@; cd ..; \
 	done
 
-install: install-app install-slib install-dlib install-mod
+install: install-app install-slib install-dlib install-mod install-inc
+
+install-inc: inc.list
+	@echo "Installing headers ..."
+	@mkdir -p $(INSTALL_INCDIR)/im
+	@for i in $(INCS); do cp -f include/$$i $(INSTALL_INCDIR)/im; done
 
 install-app: apps.list
 	@echo "Installing applications ..."
@@ -35,30 +45,39 @@ install-dlib: dlib.list
 	@echo "Installing dynamic libraries ..."
 	@for i in $(DLIBS); do cp -f $$i $(INSTALL_LIBDIR); done
 
-install-mod: mods51.list mods52.list mods53.list
+install-mod: mods52.list mods53.list
 	@echo "Installing Lua modules ..."
-	@for i in $(shell cat mods51.list); do \
-		cp -f lib/MacOS1014/Lua51/lib$$i $(INSTALL_LIBDIR)/lib$$i; \
-		ln -f -s $(INSTALL_LIBDIR)/lib$$i $(INSTALL_MODDIR)/5.1/$$i; \
-	done
+#	@mkdir -p $(INSTALL_MODDIR)/5.1
+#	@for i in $(shell cat mods51.list); do \
+#		cp -f lib/$(TEC_UNAME)/Lua51/lib$$i $(INSTALL_LIBDIR)/lib$$i; \
+#		ln -f -s $(INSTALL_LIBDIR)/lib$$i $(INSTALL_MODDIR)/5.1/$$i; \
+#	done
+	@mkdir -p $(INSTALL_MODDIR)/5.2
 	@for i in $(shell cat mods52.list); do \
-		cp -f lib/MacOS1014/Lua52/lib$$i $(INSTALL_LIBDIR)/lib$$i; \
+		cp -f lib/$(TEC_UNAME)/Lua52/lib$$i $(INSTALL_LIBDIR)/lib$$i; \
 		ln -f -s $(INSTALL_LIBDIR)/lib$$i $(INSTALL_MODDIR)/5.2/$$i; \
 	done
+	@mkdir -p $(INSTALL_MODDIR)/5.3
 	@for i in $(shell cat mods53.list); do \
-		cp -f lib/MacOS1014/Lua53/lib$$i $(INSTALL_LIBDIR)/lib$$i; \
+		cp -f lib/$(TEC_UNAME)/Lua53/lib$$i $(INSTALL_LIBDIR)/lib$$i; \
 		ln -f -s $(INSTALL_LIBDIR)/lib$$i $(INSTALL_MODDIR)/5.3/$$i; \
 	done
 
 install-list:
 	@echo "Generating installation item lists ..."
+	@ls include > inc.list
+ifeq (Linux, $(TEC_SYSNAME))
+	@find . -name "*.so" > dlib.list
+endif
+ifeq (MacOS, $(TEC_SYSNAME))
 	@find . -name "*.dylib" > dlib.list
-	@cd lib/MacOS1014/Lua51 && ls *.so | sed -s s/lib//1 > ../../../mods51.list
-	@cd lib/MacOS1014/Lua52 && ls *.so | sed -s s/lib//1 > ../../../mods52.list
-	@cd lib/MacOS1014/Lua53 && ls *.so | sed -s s/lib//1 > ../../../mods53.list
+endif
+#	@cd lib/$(TEC_UNAME)/Lua51 && ls *.so | sed -s s/lib//1 > ../../../mods51.list
+	@cd lib/$(TEC_UNAME)/Lua52 && ls *.so | sed -s s/lib//1 > ../../../mods52.list
+	@cd lib/$(TEC_UNAME)/Lua53 && ls *.so | sed -s s/lib//1 > ../../../mods53.list
 	@find . -name "*.a" > slib.list
 	@echo > apps.list
-#	@find bin/MacOS1014 -type f > apps.list
+#	@find bin/$(TEC_UNAME) -type f > apps.list
 
 uninstall-app:
 	@for i in $(APPS); do rm $(INSTALL_BINDIR)/`basename $$i`; done
