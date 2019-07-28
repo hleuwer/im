@@ -18,13 +18,10 @@ TEC_UNAME=$(shell ls lib)
 do_all:
 	@$(MAKE) --no-print-directory -C ./src/ do_all
 
-.PHONY: clean clean-target clean-obj install install-app install-slib install-dlib install-mod uninstall install-list
+.PHONY: clean install install-app install-slib install-dlib install-mod uninstall install-list install-inc
 
-clean clean-target clean-obj:
-	for i in $(SUBDIRS); \
-	do \
-	  cd $$i; $(MAKE)  -f ../tecmake.mak $@; cd ..; \
-	done
+clean:
+	rm -rf obj lib
 
 install: install-app install-slib install-dlib install-mod install-inc
 

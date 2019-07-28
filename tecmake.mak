@@ -16,8 +16,10 @@ build: tecmake
 #---------------------------------#
 # System Variables Definitions
 
-GTK_BASE=/opt/local
-GTK_MAC=Yes
+ifeq ($(TEC_SYSNAME), MacOS)
+   GTK_BASE=/opt/local
+   GTK_MAC=Yes
+endif
 
 ifndef TEC_UNAME
   # Base Definitions
@@ -76,7 +78,7 @@ ifndef TEC_UNAME
   ifneq ($(findstring aarch64, $(TEC_SYSARCH)), )
     TEC_SYSARCH:=arm64
   endif
-  
+
   # Compose
   TEC_SYSRELEASE:=$(TEC_SYSVERSION).$(TEC_SYSMINOR)
   TEC_UNAME:=$(TEC_SYSNAME)$(TEC_SYSVERSION)$(TEC_SYSMINOR)
@@ -120,7 +122,7 @@ ifndef TEC_UNAME
       BUILD_64=Yes
       TEC_UNAME:=$(TEC_UNAME)_ia64
     endif
-    
+
     # arm Linux
     ifeq ($(TEC_SYSARCH), arm)
       TEC_UNAME:=$(TEC_UNAME)_arm
@@ -131,12 +133,12 @@ ifndef TEC_UNAME
       BUILD_64=Yes
       TEC_UNAME:=$(TEC_UNAME)_arm64
     endif    
-    
+
     # Linux Distribution
     TEC_DISTNAME=$(shell lsb_release -is)
     TEC_DISTVERSION=$(shell lsb_release -rs|cut -f1 -d.)
     TEC_DIST:=$(TEC_DISTNAME)$(TEC_DISTVERSION)
-    
+
     # arm Linux (Raspberry Pi) -- NOT GOOD must be improved
     ifeq ($(TEC_SYSARCH), arm)
 	    # Raspbian GNU/Linux 7 (wheezy)
@@ -632,6 +634,7 @@ ifneq ($(findstring Linux, $(TEC_UNAME)), )
       X11_LIB := /usr/X11R6/lib64
     endif
   else
+    STDFLAGS += -fPIC
     X11_LIB := /usr/X11R6/lib
   endif
   X11_INC := /usr/X11R6/include
@@ -1073,7 +1076,8 @@ ifdef USE_LUA
   LUA_INC ?= $(LUA)/include/lua/$(LUA_VER)
   INCLUDES += $(LUA_INC)
 
-  LUA_BIN ?= $(LUA)/bin/$(TEC_UNAME)
+# leu  LUA_BIN ?= $(LUA)/bin/$(TEC_UNAME)
+  LUA_BIN ?= $(LUA)/bin
   ifdef USE_BIN2C_LUA
     BIN2C := $(LUA_BIN)/lua$(LUA_SFX) $(BIN2C_PATH)bin2c.lua
   else
