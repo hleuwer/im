@@ -769,8 +769,10 @@ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   
   UNIX_BSD = Yes
   X11_LIBS := Xp Xext X11
-  X11_LIB := /usr/X11R6/lib /usr/X11/lib
-  X11_INC := /usr/X11R6/include /usr/X11/include
+#  X11_LIB := /usr/X11R6/lib /usr/X11/lib
+#  X11_INC := /usr/X11R6/include /usr/X11/include
+  X11_LIB := /opt/X11/lib
+  X11_INC := /opt/X11/include
   MOTIF_INC := /usr/OpenMotif/include
   MOTIF_LIB := /usr/OpenMotif/lib
   ifdef BUILD_DYLIB
