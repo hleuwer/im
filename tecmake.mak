@@ -17,7 +17,8 @@ build: tecmake
 # System Variables Definitions
 
 ifeq ($(TEC_SYSNAME), MacOS)
-   GTK_BASE=/opt/local
+#   GTK_BASE=/opt/local
+   GTK_BASE=/usr/local
    GTK_MAC=Yes
 endif
 
@@ -317,10 +318,9 @@ ifdef GTK_DEFAULT
     ifneq ($(findstring cygw, $(TEC_UNAME)), )
       USE_GTK3 = Yes
     endif
-    #Homebrew
-    #ifneq ($(findstring MacOS10, $(TEC_UNAME)), )
-    #  USE_GTK3 = Yes
-    #endif
+    ifneq ($(findstring MacOS, $(TEC_UNAME)), )
+      USE_GTK3 =
+    endif
   endif
 endif
 
@@ -569,7 +569,7 @@ X11_LIBS := Xext X11
 #X11_INC :=                     #include <X11/X.h>
 
 # Definitions for OpenGL
-OPENGL_LIBS := GLU GL
+#OPENGL_LIBS := GLU GL
 #OPENGL_LIB :=
 #OPENGL_INC :=                  #include <GL/gl.h>  and possibly
 MOTIFGL_LIB := GLw              #include <GL/GLwMDrawA.h>
@@ -590,8 +590,9 @@ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   #Fink
   #FREETYPE_INC := /sw/include/freetype2
   #MacPorts
-  FREETYPE_INC := /opt/local/include/freetype2
-  #FREETYPE_INC := /usr/local/include/freetype
+#  FREETYPE_INC := /opt/local/include/freetype2
+  FREETYPE_INC := /usr/local/include/freetype2
+#  FREETYPE_INC := /usr/local/include/freetype
 endif
 
 # Definitions for GTK
@@ -601,11 +602,11 @@ else
   ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   # Prefer using GTK_BASE then changing this
   # Homebrew GTK port
-  #  GTK = /usr/local
+   GTK = /usr/local
   # Fink GTK port
   #  GTK = /sw
   # MacPorts GTK
-  GTK = /opt/local
+#   GTK = /opt/local
   # GTK-OSX Framework
   #   GTK := /gtk/inst
   else
@@ -755,14 +756,15 @@ endif
 
 ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   #Homebrew
-  #STDINCS += /usr/local/include
-  #LDIR += /usr/local/lib
+  STDINCS += /usr/local/include
+  LDIR += /usr/local/lib
+  WARNFLAGS += -Wno-incompatible-function-pointer-types
   #Fink
   #STDINCS += /sw/include
   #LDIR += /sw/lib
   #Macports
-  STDINCS += /opt/local/include
-  LDIR += /opt/local/lib
+  #STDINCS += /opt/local/include
+  #LDIR += /opt/local/lib
   # leu
   STDINCS += /usr/local/include
   LDIR += /usr/local/lib
@@ -771,8 +773,8 @@ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
   X11_LIBS := Xp Xext X11
 #  X11_LIB := /usr/X11R6/lib /usr/X11/lib
 #  X11_INC := /usr/X11R6/include /usr/X11/include
-  X11_LIB := /opt/X11/lib
-  X11_INC := /opt/X11/include
+#  X11_LIB := /opt/X11/lib
+#  X11_INC := /opt/X11/include
   MOTIF_INC := /usr/OpenMotif/include
   MOTIF_LIB := /usr/OpenMotif/lib
   ifdef BUILD_DYLIB
@@ -783,11 +785,13 @@ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
     STDLDFLAGS := -bundle -undefined dynamic_lookup
   endif
   ifdef USE_OPENGL
-#      LFLAGS = -framework OpenGL
-       LFLAGS = -L /opt/X11/lib
+#       OPENGL_INC += /usr/local/include/xcb
+      LFLAGS = -framework OpenGL
+#       LFLAGS = -L /opt/X11/lib
 #      LFLAGS = -L /opt/local/lib
-      OPENGL_LIBS := GL GLU
-    ifeq ($(TEC_SYSMINOR), 5)
+#      OPENGL_LIBS := GL GLU
+#       OPENGL_LIBS := glfw GLEW
+  ifeq ($(TEC_SYSMINOR), 5)
       #Darwin9 Only - OpenGL bug fix for Fink, when the message bellow appears
       #   ld: cycle in dylib re-exports with /usr/X11R6/lib/libGL.dylib
       LFLAGS += -dylib_file /System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib:/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries/libGL.dylib
@@ -1376,9 +1380,14 @@ ifdef USE_GTK
   # Option 3 - GTK-OSX Framework
      LDIR += $(GTK)/lib
      LFLAGS += -framework Carbon
-     LIBS += gtk-quartz-$(GTKSFX).0 gdk-quartz-$(GTKSFX).0 pangoft2-1.0
-
+     ifdef USE_GTK3
+#        LIBS += gtkextra-quartz-$(GTKSFX).0 gdk-quartz-2.0 pangoft2-1.0
+        LIBS += gtk-$(GTKSFX).0 gtkextra-quartz-$(GTKSFX).0 gdk-$(GTKSFX).0 pangoft2-1.0
+     else
+        LIBS += gtk-quartz-$(GTKSFX).0 gdk-quartz-$(GTKSFX).0 pangoft2-1.0
+     endif
       LIBS += freetype
+      DEFINES+=USE_GTK$(GTKSFX)
     else
       # if not the default, then include it for linker
       # must be before the default
@@ -1404,6 +1413,7 @@ ifdef USE_GTK
     
     STDINCS += $(GTK)/include/atk-1.0 $(GTK)/include/gtk-$(GTKSFX).0 $(GTK)/include/gdk-pixbuf-2.0 
     STDINCS += $(GTK)/include/cairo $(GTK)/include/pango-1.0 $(GTK)/include/glib-2.0
+    STDINCS += $(GTK)/include/harfbuzz
 
     ifeq ($(TEC_SYSARCH), x64)
       STDINCS += $(GTK)/lib64/glib-2.0/include 
